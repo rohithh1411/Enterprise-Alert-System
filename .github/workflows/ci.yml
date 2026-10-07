@@ -14,19 +14,15 @@ jobs:
 
     runs-on: [self-hosted, Windows, X64]
 
-    defaults:
-      run:
-        shell: powershell -ExecutionPolicy Bypass -command ". '{0}'"
-
     steps:
 
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
+      - name: Check Python
+        run: |
+          python --version
+          python -m pip --version
 
       - name: Install dependencies
         run: |
