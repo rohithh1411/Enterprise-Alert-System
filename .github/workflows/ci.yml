@@ -34,4 +34,10 @@ jobs:
       - name: Scan for secrets with Gitleaks
         uses: gitleaks/gitleaks-action@v2
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }
+
+      
+      - name: Scan code with Semgrep
+        uses: semgrep/semgrep-action@v1
+        with:
+          config: p/default
