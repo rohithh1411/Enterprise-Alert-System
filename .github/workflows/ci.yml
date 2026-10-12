@@ -7,41 +7,64 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+
 jobs:
-  test:
+  test-and-scan:
+    name: Test and Security Scan
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Download repository code
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
+      # 2. Install Python
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
+      # 3. Install project dependencies
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pytest httpx
 
+      # 4. Run application tests
       - name: Run tests
         run: python -m pytest -v
 
+      # 5. Scan for accidentally committed secrets
       - name: Scan for secrets with Gitleaks
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      # 6. Find potentially insecure coding patterns
       - name: Scan code with Semgrep
         uses: semgrep/semgrep-action@v1
         with:
           config: p/default
 
+      # 7. Scan code quality and security with SonarQube Cloud
       - name: SonarQube Cloud Scan
         uses: SonarSource/sonarqube-scan-action@v6
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      # 8. Scan dependencies and repository configuration with Trivy
+      - name: Scan with Trivy
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,misconfig
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          format: table
+          exit-code: "0"
